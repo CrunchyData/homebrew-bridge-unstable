@@ -1,33 +1,33 @@
 class Cb < Formula
     desc "CLI for Crunchy Bridge"
     homepage "https://crunchybridge.com"
-    version "4.0.0-alpha.0"
-    license "GPL-3.0-or-later"
-    revision 1
+    version "v4.0.0-alpha.0"
+    license "Apache-2.0"
 
-    if OS.mac? && Hardware::CPU.arm?
-      url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/v#{version}/cb-v#{version}_macos_arm64.zip"
-      sha256 "20801e6703fbce1228a699b40bf24727cd1d6d1aa30fcdf2f24b11a783a30992"
+    on_macos do
+      if Hardware::CPU.intel?
+        url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/vv4.0.0-alpha.0/cb-v4.0.0-alpha.0_macos_amd64.zip"
+        sha256 "75e3b3afa8ece514558a4e7dcb3c75bc85d76ebc6b805395ea66a1c378fe6212"
+      end
+      if Hardware::CPU.arm?
+        url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/vv4.0.0-alpha.0/cb-v4.0.0-alpha.0_macos_arm64.zip"
+        sha256 "850e357ce64e27b6449cbf0b435cf93833dddbe0a2333cab14e34b244a700159"
+      end
     end
 
-    if OS.mac? && Hardware::CPU.intel?
-      url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/v#{version}/cb-v#{version}_macos_amd64.zip"
-      sha256 "ce39f562832ae7f9ca9d7f9ad791760349668264e155e664537bdb9152ae5c39"
-    end
-
-    if OS.linux? && Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/v#{version}/cb-v#{version}_linux_arm64.zip"
-      sha256 "44d74bc05d5da9f13bedb00162fc37050c5539c7622134e64d2ce22327431228"
-    end
-
-    if OS.linux? && Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/v#{version}/cb-v#{version}_linux_amd64.zip"
-      sha256 "87a6f0bf90452b0184db165a658df62ff493093f23cce9a38e9ebed88302718b"
+    on_linux do
+      if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
+        url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/vv4.0.0-alpha.0/cb-v4.0.0-alpha.0_linux_amd64.zip"
+        sha256 "9f9ca7e461b409eff28bbd015d8941a7b7b59f99126c33e79361ce74dd2d2c69"
+      end
+      if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
+        url "https://github.com/CrunchyData/bridge-cli-v2/releases/download/vv4.0.0-alpha.0/cb-v4.0.0-alpha.0_linux_arm64.zip"
+        sha256 "b4fc5d6deed7c050d69eb7f8a0cd655d729afa8767def748a58b6a89081c4598"
+      end
     end
 
     def install
       bin.install "cb"
-
       ["bash", "fish", "zsh"].each do |shell|
         if shell == "bash" && which("bash")
           bash_completion.install "#{bin}/cb completion bash" => "cb"
@@ -36,10 +36,10 @@ class Cb < Formula
         elsif shell == "zsh" && which("zsh")
           zsh_completion.install "#{bin}/cb completion zsh" => "_cb"
         end
+      end
     end
-
 
     test do
-      assert_match "cb v#{version}", shell_output(bin / "cb version")
+      assert_match "cb vv4.0.0-alpha.0", shell_output(bin / "cb version")
     end
-  end
+end`
