@@ -1,0 +1,58 @@
+name: Publish Release
+on:
+  pull_request:
+    branches: [ abrightwell/ci-workflow ]
+  push:
+    branches: [ abrightwell/ci-workflow ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g., v1.2.3-alpha.1)"
+        required: true
+
+jobs:
+  publish-release:
+    # if: contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-14 ] #, macos-13]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Set up git
+        uses: Homebrew/actions/git-user-config@master
+
+      - name: Download Tarball
+        run: |
+          VERSION=${{ github.event.inputs.version || github.event.pull_request.head.ref }}
+          gh release download $VERSION --repo crunchydata/bridge-cli-v2 --archive tar.gz --output cb-$VERSION.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.BRIDGE_CI_BOT_TOKEN }}
+
+      - name: Create Draft Release
+        run: |
+          VERSION=${{ github.event.inputs.version || github.event.pull_request.head.ref }}
+          gh release create $VERSION --draft --title "$VERSION" *.tar.gz
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Bottles
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.TAP_PAT }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+          VERSION: ${{ github.event.inputs.version || github.event.pull_request.head.ref }}
+        run: |
+          brew pr-pull --tap=crunchydata/homebrew-bridge-unstable --autosquash --no-upload $PULL_REQUEST
+          gh release upload $VERSION "cb-$VERSION-${{ runner.os }}.bottle.tar.gz"
+
+      - name: Cleanup on Failure
+        if: failure()
+        run: |
+          VERSION=${{ github.event.inputs.version || github.event.pull_request.head.ref }}
+          gh release delete $VERSION --yes
