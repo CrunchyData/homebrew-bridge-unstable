@@ -1,0 +1,44 @@
+name: publish
+on:
+  pull_request_review:
+    types: [submitted]
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SOURCE_REPO_CB: crunchydata/bridge-cli-v2
+
+jobs:
+  publish:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse version from branch name
+        run: echo "VERSION=${github.event.pull_request.head.ref#update-formula-cb-}" >> $GITHUB_ENV
+
+      - name: Download Artifacts
+        run: |
+          gh release download "${{ env.VERSION }}" \
+            --repo ${{ env.SOURCE_REPO_CB }} \
+            --dir ./artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.BRIDGE_CI_BOT_TOKEN }}
+
+      - name: Create draft release
+        run: |
+          gh release create "${{ env.VERSION }}" \
+            --title "Crunchy Bridge CLI ${{ env.VERSION }}" \
+            --draft \
+            ./artifacts/*
+
+      - name: Rebase and Merge PR
+        run: |
+          gh pr merge "${{ github.event.pull_request.number }}" --rebase --delete-branch
+
+      - name: Publish Release
+        run: |
+          gh release edit "${{ env.VERSION }}" --draft=false
+
+      - name: Cleanup on Failure
+        if: failure()
+        run: |
+          gh release delete "${{ env.VERSION }}" --yes
