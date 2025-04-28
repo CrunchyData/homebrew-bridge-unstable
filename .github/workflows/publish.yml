@@ -13,8 +13,13 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Update Homebrew
+        run: brew update
+
       - name: Set up git
-        uses: Homebrew/actions/git-user-config@master
+        run: |
+          git config --global user.name "Bridge CI Bot"
+          git config --global user.email "bridge-bot@crunchydata.com"
 
       - name: Pull bottles
         env:
