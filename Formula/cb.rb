@@ -2,6 +2,7 @@ class Cb < Formula
   desc "CLI for Crunchy Bridge"
   homepage "https://crunchybridge.com"
   license "Apache-2.0"
+  revision 1
 
   on_macos do
     if Hardware::CPU.intel?
@@ -27,15 +28,7 @@ class Cb < Formula
 
   def install
     bin.install "cb"
-    ["bash", "fish", "zsh"].each do |shell|
-      if shell == "bash" && which("bash")
-        bash_completion.install "#{bin}/cb completion bash" => "cb"
-      elsif shell == "fish" && which("fish")
-        fish_completion.install "#{bin}/cb completion fish"
-      elsif shell == "zsh" && which("zsh")
-        zsh_completion.install "#{bin}/cb completion zsh" => "_cb"
-      end
-    end
+    generate_completions_from_executable(bin/"cb", "completion")
   end
 
   test do
