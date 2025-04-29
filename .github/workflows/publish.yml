@@ -13,7 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Parse version from branch name
-        run: echo "VERSION=${github.event.pull_request.head.ref#update-formula-cb-}" >> $GITHUB_ENV
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          echo "VERSION=${BRANCH#update-formula-cb-}" >> $GITHUB_ENV
 
       - name: Download Artifacts
         run: |
